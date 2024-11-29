@@ -13,7 +13,7 @@ load_dotenv(override=True)
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 mistral_api_key = os.getenv("MISTRAL_API_KEY")
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
-gemini_api_key = os.getenv("GEMINI_API_KEY")
+
 
 ### Loading of the model
 model = ChatMistralAI(model="mistral-large-latest")
@@ -66,7 +66,7 @@ def db_connect():
         host=host,
         user=username,
         password=password,
-        cursor_factory=DictCursor  # Devuelve filas como diccionarios
+        cursor_factory=DictCursor 
     )
     cursor = conn.cursor()
     return conn, cursor
