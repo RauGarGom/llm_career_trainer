@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Application</title>
+    <title>DSTrainer</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <h1>Welcome to My Application</h1>
+    <h1>DSTrainer by Raúl García</h1>
     <div id="content">
+        <p>{{ question }}</p>
         <p>{{ evaluation }}</p>
+        <form action="/evaluate-answer" method="post">
+            <textarea name="answer" placeholder="Enter your answer here" rows="10" cols="50"></textarea>
+            <button type="submit">Submit Answer</button>
+        </form>
         <a href="/generate-question"><button>Generate Another Question</button></a>
     </div>
 </body>
