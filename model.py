@@ -1,8 +1,8 @@
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_mistralai import ChatMistralAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
-import getpass
+from langchain_core.output_parsers import StrOutputParser
+import pandas as pd
 import os
 from dotenv import load_dotenv, find_dotenv
 import psycopg2
@@ -18,17 +18,28 @@ langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
 ### Loading of the model
 model = ChatMistralAI(model="mistral-large-latest")
 
+
+
 def generate_question():
-    system_template = "You are an interviewer for a Data Science position. Ask one random technical question."
-    prompt_template = ChatPromptTemplate.from_messages(
-        [("system", system_template)]
-    )
-    message = [
-        SystemMessage("You are an interviewer for a Data Science position. Ask one random technical question.")
-    ]
-    response = model.invoke(message)
-    db_insert_values('generate_question','system',response.content)
-    return response.content
+    df_questions = pd.read_csv('./data/questions.csv')
+    question = df_questions.sample(1,ignore_index=True).values[0][0]
+    db_insert_values('generate_question','system',question)
+    return question
+
+
+def evaluate_answer_v2(answer,current_question):
+    db_insert_values('answer_question','user',answer)
+    ''' Makes a judgamental thought of the answer'''
+    prompt = ChatPromptTemplate.from_template("You are an Data Science techincal interviewer. Make a brief evaluation of the interviewee, based on the answer {answer} from the question {question}.")
+    chain = prompt | model | StrOutputParser()
+    thought = chain.invoke({"answer": answer,"question":current_question})
+    db_insert_values('evaluate_answer','system',thought)
+    ''' Takes the thought and evolves the interview'''
+    analysis_prompt = ChatPromptTemplate.from_template("Make a following question based on {reasoning}. Just give the question and be concise.")
+    composed_chain = {"reasoning": chain} | analysis_prompt | model | StrOutputParser()
+    follow_up = composed_chain.invoke({"answer": answer, "question": current_question})
+    db_insert_values('follow_up question','system',follow_up)
+    return thought, follow_up 
 
 def evaluate_answer(answer):
     db_insert_values('answer_question','user',answer)

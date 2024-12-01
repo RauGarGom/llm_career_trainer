@@ -12,7 +12,19 @@
         <p>{{ question }}</p>
         <form action="/evaluate-answer" method="post">
             <textarea name="answer" placeholder="Enter your answer here" rows="10" cols="50"></textarea>
-            <button type="submit">Submit Answer</button>
+        <p>
+            <td>
+                <button type="submit">Submit Answer</button>
+            </td>
+            <td>
+                <button onclick="refreshPage()">Generate Another Question</button>
+                <script>
+                    function refreshPage() {
+                        location.reload(); // Reloads the page
+                    }
+                </script>
+            </td>
+        </p>
         </form>
     </div>
 </body>

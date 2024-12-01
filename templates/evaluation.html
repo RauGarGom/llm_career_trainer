@@ -8,14 +8,50 @@
 </head>
 <body>
     <h1>DSTrainer by Raúl García</h1>
-    <div id="content">
-        <p>{{ question }}</p>
-        <p>{{ evaluation }}</p>
-        <form action="/evaluate-answer" method="post">
-            <textarea name="answer" placeholder="Enter your answer here" rows="10" cols="50"></textarea>
-            <button type="submit">Submit Answer</button>
-        </form>
-        <a href="/generate-question"><button>Generate Another Question</button></a>
-    </div>
+    <table style="width:100%; height:100vh;">
+        <tr>
+            <!-- Primera columna -->
+            <td style="width:66.66%; vertical-align:top;">
+                <div id="follow_up">
+                    <h3>Follow-up:</h3>
+                    <p>{{ follow_up }}</p>
+                </div>
+                <div id="content">
+                    <p>{{ question }}</p>
+                    <p>{{ evaluation }}</p>
+                    <form action="/evaluate-answer" method="post">
+                        <textarea name="answer" placeholder="Enter your answer here" rows="10" cols="50"></textarea>
+                        <p>
+                            <button type="submit">Submit Answer</button>
+                        </p>
+                    </form>
+                    <p>
+                        <a href="/generate-question"><button>Generate Another Question</button></a>
+                    </p>
+                    
+                    <!-- Mostrar el follow_up aquí -->
+                    {% if follow_up %}
+                        
+                    {% endif %}
+                </div>
+            </td>
+    
+            <!-- Segunda columna -->
+            <td style="width:33.33%; vertical-align:top;">
+                <div id="sidebar">
+                    <!-- <h2>Sidebar Content</h2>
+                    <p>This is the sidebar area.</p> -->
+    
+                    <!-- Mostrar el thought aquí -->
+                    {% if thought %}
+                        <div id="thought">
+                            <h3>The interviewer thinks...</h3>
+                            <p>{{ thought }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

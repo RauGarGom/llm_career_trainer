@@ -13,19 +13,25 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Initialize Jinja2 templates
 templates = Jinja2Templates(directory="templates")
 
+# Global variable so evaluate gets the same question as generate
+current_question = None
+
 @app.get('/', response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get('/generate-question', response_class=HTMLResponse)
 async def generate_question(request: Request):
-    question = md.generate_question()
-    return templates.TemplateResponse("question.html", {"request": request, "question": question})
+    global current_question
+    current_question = md.generate_question()
+    return templates.TemplateResponse("question.html", {"request": request, "question": current_question})
 
 @app.post('/evaluate-answer', response_class=HTMLResponse)
 async def evaluate_answer(request: Request, answer: str = Form(...)):
-    evaluation = md.evaluate_answer(answer)
-    return templates.TemplateResponse("evaluation.html", {"request": request, "evaluation": evaluation})
+    global current_question
+    thought,follow_up = md.evaluate_answer_v2(answer,current_question)
+    return templates.TemplateResponse("evaluation.html",
+                                       {"request": request, "thought": thought, "follow_up": follow_up})
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

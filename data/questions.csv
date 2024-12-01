@@ -1,0 +1,30 @@
+question
+"How do you determine if a dataset is biased or unbalanced, and how would you address it?"
+Explain the concept of overfitting and underfitting in machine learning.
+How would you test if two variables are statistically independent?
+"Given a dataset with missing values, what techniques would you use to handle them? When would you use imputation over deletion?"
+How would you detect and handle outliers in a dataset?
+Explain the difference between normalization and standardization. When would you use each?
+Describe how you would approach feature engineering for a dataset with categorical and numerical features.
+Explain the difference between bagging and boosting. Provide examples of algorithms for each.
+How would you evaluate the performance of a classification model? Which metrics would you choose and why?
+You have an imbalanced dataset. What strategies would you apply to train a robust machine learning model?
+Describe the bias-variance tradeoff and its impact on model performance.
+What is the purpose of regularization in machine learning? Compare L1 (Lasso) and L2 (Ridge) regularization.
+"Write a Python function to calculate the precision, recall, and F1-score for a binary classification problem."
+How would you optimize the performance of a machine learning pipeline in Python? Mention libraries or tools you would use.
+What are the differences between pandas and numpy? When would you use each?
+"Explain the role of the learning rate in training neural networks. How do you decide on an appropriate learning rate, and what are the consequences of setting it too high or too low?"
+"In ensemble learning, how does a Random Forest differ from Gradient Boosted Trees (e.g., XGBoost, LightGBM)? Which situations favor each?"
+How would you handle a scenario where your model is accurate overall but performs poorly for a specific subset of your data?
+"What is transfer learning, and how can it be applied to reduce training time in a machine learning project? Provide a practical example of its usage."
+Can you explain the difference between supervised and unsupervised learning?
+How would you handle missing data in a dataset?
+"What is the bias-variance tradeoff, and how do you balance it?"
+Describe a situation where you had to use feature engineering. What was the outcome?
+How do you evaluate the performance of a classification model?
+"What is cross-validation, and why is it important?"
+Explain the concept of overfitting and how you can prevent it.
+How do you handle imbalanced datasets?
+What is the difference between a parametric and a non-parametric model?
+Can you explain the concept of dimensionality reduction and provide an example?
