@@ -8,10 +8,10 @@ import model as md
 app = FastAPI()
 
 # Mount the static files directory
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/assets", StaticFiles(directory="./templates/assets"), name="assets")
 
 # Initialize Jinja2 templates
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="./templates/html")
 
 # Global variable so evaluate gets the same question as generate
 current_question = None
