@@ -8,6 +8,8 @@ from dotenv import load_dotenv, find_dotenv
 import psycopg2
 from psycopg2.extras import DictCursor
 load_dotenv(override=True)
+import asyncio
+import aiohttp
 
 ### Environment variables for API keys
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
@@ -16,8 +18,20 @@ langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
 
 
 ### Loading of the model
-model = ChatMistralAI(model="mistral-large-latest", max_tokens=100)
+model = ChatMistralAI(model="mistral-large-latest", max_tokens=500)
 
+# async def make_request_with_retry(messages, max_retries=5, delay=60):
+#     for attempt in range(max_retries):
+#         try:
+#             response = await model.generate(messages)
+#             return response
+#         except Exception as e:
+#             if "rate limit" in str(e).lower() and attempt < max_retries - 1:
+#                 print(f"Rate limit exceeded. Retrying after {delay} seconds...")
+#                 await asyncio.sleep(delay)
+#             else:
+#                 raise
+#     raise Exception("Max retries exceeded")
 
 
 def generate_question():
@@ -28,18 +42,27 @@ def generate_question():
 
 
 def evaluate_answer_v2(answer,current_question):
+    ### Inserts into the db the answer of the user
     db_insert_values('answer_question','user',answer)
-    ''' Makes a judgamental thought of the answer'''
-    prompt = ChatPromptTemplate.from_template("You are an Data Science techincal interviewer. Make a brief evaluation of the interviewee, based on the answer {answer} from the question {question}.")
+
+    ### Makes a judgamental thought of the answer
+    prompt = ChatPromptTemplate.from_template("You are an Data Science techincal interviewer. Evaluate in 100 words or less the interviewee, based on the answer {answer} from the question {question}.")
     chain = prompt | model | StrOutputParser()
     thought = chain.invoke({"answer": answer,"question":current_question})
     db_insert_values('evaluate_answer','system',thought)
-    ''' Takes the thought and evolves the interview'''
+
+    ### Gives a grade based on the thought
+    grade_prompt = ChatPromptTemplate.from_template("Grade the answer, based on {reasoning}. Examples: 1/10, 4/10, 10/10. Just give the numerical grade")
+    grade_chain = {"reasoning": chain} | grade_prompt | model | StrOutputParser()
+    grade = grade_chain.invoke({"answer": answer, "question": current_question})
+    db_insert_values('grade','system',grade)
+
+    ### Takes the thought and continues the interview
     analysis_prompt = ChatPromptTemplate.from_template("Make a following question based on {reasoning}. Just give the question and be concise.")
     composed_chain = {"reasoning": chain} | analysis_prompt | model | StrOutputParser()
     follow_up = composed_chain.invoke({"answer": answer, "question": current_question})
     db_insert_values('follow_up question','system',follow_up)
-    return thought, follow_up 
+    return thought, follow_up, grade
 
 def evaluate_answer(answer):
     db_insert_values('answer_question','user',answer)

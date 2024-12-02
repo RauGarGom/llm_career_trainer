@@ -26,7 +26,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light navbar-float">
         <div class="container">
-          <a href="index.html" class="navbar-brand">DS<span class="text-primary">Trainer</span></a>
+          <a href="/" class="navbar-brand">DS<span class="text-primary">Trainer</span></a>
   
           <button class="navbar-toggler" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -35,7 +35,7 @@
           <div class="navbar-collapse collapse" id="navbarContent">
             <ul class="navbar-nav ml-lg-4 pt-3 pt-lg-0">
               <li class="nav-item">
-                <a href="index.html" class="nav-link">Home</a>
+                <a href="/" class="nav-link">Home</a>
               </li>
               <li class="nav-item active">
                 <a href="/generate-question" class="nav-link">Train</a>
@@ -43,7 +43,7 @@
             </ul>
   
             <div class="ml-auto">
-              <a href="#" class="btn btn-outline rounded-pill">Get a Quote</a>
+              <a href="https://github.com/RauGarGom/" target="_blank" rel="noopener noreferrer" class="btn btn-outline rounded-pill">Check out my GitHub</a>
             </div>
           </div>
         </div>
@@ -53,13 +53,13 @@
             <table style="width:100%; height:100vh;">
                 <tr>
                     <!-- Primera columna -->
-                    <td style="width:66.66%; vertical-align:top;">
+                    <td style="width:66.66%; vertical-align:top;padding-right:30px;">
                         <div id="follow_up">
 
                         </div>
                         <div id="content">
                             <h3 class="title-section">Follow-up:</h3>
-                            <p class="text-lg mt-5">{{ follow_up }}</p>
+                            <p class="text-lg">{{ follow_up }}</p>
                             <!-- <p class="text-lg mt-5">{{ question }}</p> -->
                             <form action="/evaluate-answer" method="post">
                                 <textarea rows="6" name="answer" class="form-control" placeholder="Enter your answer here" cols="50"></textarea>
@@ -68,28 +68,20 @@
                                     <a href="/generate-question" ><button class="btn btn-outline rounded-pill mt-4">Generate Another Question</button></a>
                                 </p>
                             </form>
-
-                            
-                            <!-- Mostrar el follow_up aquí -->
-                            <!-- {% if follow_up %}
-                                
-                            {% endif %} -->
                         </div>
                     </td>
             
                     <!-- Segunda columna -->
                     <td style="width:33.33%; vertical-align:top;">
                         <div id="sidebar">
-                            <!-- <h2>Sidebar Content</h2>
-                            <p>This is the sidebar area.</p> -->
-            
-                            <!-- Mostrar el thought aquí -->
-                            <!-- {% if thought %} -->
-                                <div id="thought">
-                                    <h3 class="title-section">The interviewer thinks...</h3>
-                                    <p>{{ thought }}</p>
-                                </div>
-                            <!-- {% endif %} -->
+                            <div id = "grade">
+                                <h3 class="title-section">Your grade</h3>
+                                <h4 class="subhead">{{ grade }}</h4>                                
+                            </div>
+                            <div id="thought", style="padding-top:50px;">
+                                <h3 class="title-section">The interviewer thinks...</h3>
+                                <p>{{ thought }}</p>
+                            </div>
                         </div>
                     </td>
                 </tr>
