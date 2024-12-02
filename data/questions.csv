@@ -20,11 +20,23 @@ How would you handle a scenario where your model is accurate overall but perform
 "What is transfer learning, and how can it be applied to reduce training time in a machine learning project? Provide a practical example of its usage."
 Can you explain the difference between supervised and unsupervised learning?
 How would you handle missing data in a dataset?
-"What is the bias-variance tradeoff, and how do you balance it?"
 Describe a situation where you had to use feature engineering. What was the outcome?
 How do you evaluate the performance of a classification model?
 "What is cross-validation, and why is it important?"
 Explain the concept of overfitting and how you can prevent it.
 How do you handle imbalanced datasets?
 What is the difference between a parametric and a non-parametric model?
-Can you explain the concept of dimensionality reduction and provide an example?
+Can you explain the concept of dimensionality reduction and provide an example?What is conditional probability?
+What is Bayes’ Theorem and when is it used in data science?
+"Explain the concepts of mean, median, mode, and standard deviation."
+Explain the differences between SQL and NoSQL databases.
+"In SQL, what is a primary key?"
+"What is the WHERE clause used for, and how is it used to filter data?"
+"Logistic regression is a classification technique, why its name is regressions, not logistic classifications?"
+"What is a support vector machine (SVM), and what are its key components?"
+Describe random forests and their advantages over single-decision trees.
+"What is K-Means, and how will it work?"
+What is a confusion matrix? Explain with an example.
+Explain the difference between INNER JOIN and LEFT JOIN.
+How we will deal with the categorical text values in machine learning?
+"What are the ROC and AUC, explain its significance in binary classification."
