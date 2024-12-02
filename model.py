@@ -8,8 +8,6 @@ from dotenv import load_dotenv, find_dotenv
 import psycopg2
 from psycopg2.extras import DictCursor
 load_dotenv(override=True)
-import asyncio
-import aiohttp
 
 ### Environment variables for API keys
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
