@@ -1,31 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSTrainer</title>
-    <link rel="stylesheet" href="/static/styles.css">
-</head>
+    <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+          <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        
+          <meta name="copyright" content="MACode ID, https://macodeid.com">
+        
+          <title>DSTrainer by Raúl García</title>
+        
+          <link rel="stylesheet" href="../assets/vendor/animate/animate.css">
+        
+          <link rel="stylesheet" href="../assets/css/bootstrap.css">
+        
+          <link rel="stylesheet" href="../assets/css/maicons.css">
+        
+          <link rel="stylesheet" href="../assets/vendor/owl-carousel/css/owl.carousel.css">
+        
+          <link rel="stylesheet" href="../assets/css/theme.css">
+        
+          <link rel="icon" href="../assets/img/favicon-32x32.png" type="image/x-icon">
+        
+        </head>
+        
 <body>
-    <h1>DSTrainer by Raúl García</h1>
-    <div id="content">
-        <p>{{ question }}</p>
-        <form action="/evaluate-answer" method="post">
-            <textarea name="answer" placeholder="Enter your answer here" rows="10" cols="50"></textarea>
-        <p>
-            <td>
-                <button type="submit">Submit Answer</button>
-            </td>
-            <td>
-                <button onclick="refreshPage()">Generate Another Question</button>
+    <nav class="navbar navbar-expand-lg navbar-light navbar-float">
+        <div class="container">
+          <a href="index.html" class="navbar-brand">DS<span class="text-primary">Trainer</span></a>
+  
+          <button class="navbar-toggler" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+  
+          <div class="navbar-collapse collapse" id="navbarContent">
+            <ul class="navbar-nav ml-lg-4 pt-3 pt-lg-0">
+              <li class="nav-item">
+                <a href="index.html" class="nav-link">Home</a>
+              </li>
+              <li class="nav-item active">
+                <a href="#" onclick="refreshPage();" class="nav-link">Train</a>
                 <script>
                     function refreshPage() {
                         location.reload(); // Reloads the page
                     }
                 </script>
-            </td>
-        </p>
-        </form>
+              </li>
+            </ul>
+  
+            <div class="ml-auto">
+              <a href="#" class="btn btn-outline rounded-pill">Get a Quote</a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    <div class="page-section">
+        <div class="container h-100">
+            <p class="text-lg mt-5">{{ question }}</p>
+            <form action="/evaluate-answer" method="post">
+                <textarea rows="6" name="answer" class="form-control" placeholder="Enter your answer here"  cols="50"></textarea>
+            <p>
+                <td>
+                    <button type="submit" class="btn btn-primary rounded-pill mt-4">Submit Answer</button>
+                </td>
+                <td>
+                    <button onclick="refreshPage()" class="btn btn-outline rounded-pill mt-4">Generate Another Question</button>
+                    <script>
+                        function refreshPage() {
+                            location.reload(); // Reloads the page
+                        }
+                    </script>
+                </td>
+            </p>
+            </form>
+        </div>
     </div>
 </body>
 </html>

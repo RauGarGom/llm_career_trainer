@@ -16,7 +16,7 @@ langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
 
 
 ### Loading of the model
-model = ChatMistralAI(model="mistral-large-latest")
+model = ChatMistralAI(model="mistral-large-latest", max_tokens=100)
 
 
 
