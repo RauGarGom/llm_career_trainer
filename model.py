@@ -1,4 +1,4 @@
-from langchain_mistralai import ChatMistralAI
+from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -13,10 +13,12 @@ load_dotenv(override=True)
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 mistral_api_key = os.getenv("MISTRAL_API_KEY")
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
+groq_api_key = os.getenv("GROQ_API_KEY")
+
 
 
 ### Loading of the model
-model = ChatMistralAI(model="mistral-large-latest", max_tokens=500)
+model = ChatGroq(model="llama3-8b-8192")
 
 # async def make_request_with_retry(messages, max_retries=5, delay=60):
 #     for attempt in range(max_retries):
@@ -44,36 +46,52 @@ def evaluate_answer_v2(answer,current_question):
     db_insert_values('answer_question','user',answer)
 
     ### Makes a judgamental thought of the answer
-    prompt = ChatPromptTemplate.from_template("You are an Data Science techincal interviewer. Evaluate in 100 words or less the interviewee, based on the answer {answer} from the question {question}.")
+    prompt = ChatPromptTemplate.from_template(
+        '''
+        You are an Data Science techincal interviewer. Make a reasoned evaluation in 100 words or less of the interviewee, based on the answer {answer} from the question {question}.
+        Only evaluate the points explicitly mentioned in the question and only evaluate the answer {answer} from the question {question}, disregarding past interactions.
+        For example, do not evaluate the lack of an example in the answer if the question did not ask for it. Also, don't ever grade the question.
+        '''
+        )
     chain = prompt | model | StrOutputParser()
     thought = chain.invoke({"answer": answer,"question":current_question})
     db_insert_values('evaluate_answer','system',thought)
 
     ### Gives a grade based on the thought
-    grade_prompt = ChatPromptTemplate.from_template("Grade the answer, based on {reasoning}. Examples: 1/10, 4/10, 10/10. Just give the numerical grade")
-    grade_chain = {"reasoning": chain} | grade_prompt | model | StrOutputParser()
-    grade = grade_chain.invoke({"answer": answer, "question": current_question})
+    grade_prompt = ChatPromptTemplate.from_template(
+        '''
+        Grade the answer for the interviewee, based on the following reasoning given by the interviewer: {reasoning}. Examples: 1/10, 4/10, 10/10. Only give the grade,
+        don't explain it.
+        '''
+        )
+    grade_chain = grade_prompt | model | StrOutputParser()
+    grade = grade_chain.invoke({"reasoning":thought,"answer": answer, "question": current_question})
     db_insert_values('grade','system',grade)
 
     ### Takes the thought and continues the interview
-    analysis_prompt = ChatPromptTemplate.from_template("Make a following question based on {reasoning}. Just give the question and be concise.")
-    composed_chain = {"reasoning": chain} | analysis_prompt | model | StrOutputParser()
-    follow_up = composed_chain.invoke({"answer": answer, "question": current_question})
+    analysis_prompt = ChatPromptTemplate.from_template(
+        '''
+        Make a following question based on the grade {grade}. If the grade is 5/10 or higher, make the question harder, while
+        if the grade lower than, make another technical question related to Data Science. that must not be related to the question {question}, but must always be related to Data Science.
+        Just give the question and be concise. Don't show the grade or the reasoning and just give the question, this is very important.
+        ''')
+    composed_chain = analysis_prompt | model | StrOutputParser()
+    follow_up = composed_chain.invoke({"reasoning": answer, "grade": grade, "question": current_question})
     db_insert_values('follow_up question','system',follow_up)
-    return thought, follow_up, grade
+    return thought, follow_up, grade, answer
 
-def evaluate_answer(answer):
-    db_insert_values('answer_question','user',answer)
-    system_template = "You are an interviewer for a Data Science position. Evaluate the answer of {answer} and make a follow-up question, but don't explain it. Be concise."
-    prompt_template = ChatPromptTemplate.from_messages(
-        [("system", system_template), ("user", "{answer}")]
-    )
-    prompt = prompt_template.invoke({"answer": answer})
-    response = model.invoke(prompt)
-    db_insert_values('evaluate_answer','system',response.content)
-    return response.content
+def question_explanation(current_question):
+    prompt = ChatPromptTemplate.from_template(
+        '''
+        You are an Data Science teacher. Give a detailed explanation of the question {question}. Focus on what would be worth metioning in a job interview. Don't use more than 500 words.
+        '''
+        )
+    chain = prompt | model | StrOutputParser()
+    explanation = chain.invoke({"question":current_question})
+    db_insert_values('answer_explanation','system',explanation)
+    return explanation
 
-def interview_training_local():
+# def interview_training_local():
     system_template = "You are an interviewer for a Data Science position. Evaluate the answer of {answer} and make a follow-up question, but don't explain it. Be concise."
     prompt_template = ChatPromptTemplate.from_messages(
         [("system", system_template), ("user", "{answer}")]
@@ -90,9 +108,9 @@ def interview_training_local():
     print(response.content)
 
 def db_connect():
-    host = "llm-db.c9egi4wa8bqm.eu-west-1.rds.amazonaws.com"
+    host = "localhost" ### Change to llm-db.c9egi4wa8bqm.eu-west-1.rds.amazonaws.com for production.
     username = "postgres"
-    password = os.getenv("POSTGRE_PASS")
+    password = os.getenv("LOCAL_POSTGRE_PASS") ### Change to POSTGRE_PASS for production.
     port = 5432
     conn = psycopg2.connect(
         host=host,

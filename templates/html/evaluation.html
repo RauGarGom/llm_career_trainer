@@ -54,20 +54,21 @@
                 <tr>
                     <!-- Primera columna -->
                     <td style="width:66.66%; vertical-align:top;padding-right:30px;">
+                      <div id="answer">
+                        <h3 class="title-section">Your Answer:</h3>
+                        <p class="text-lg">{{ prev_answer }}</p>
+                    </div>
                         <div id="follow_up">
-
-                        </div>
-                        <div id="content">
                             <h3 class="title-section">Follow-up:</h3>
                             <p class="text-lg">{{ follow_up }}</p>
                             <!-- <p class="text-lg mt-5">{{ question }}</p> -->
                             <form action="/evaluate-answer" method="post">
-                                <textarea rows="6" name="answer" class="form-control" placeholder="Enter your answer here" cols="50"></textarea>
-                                <p>
-                                    <button type="submit" class="btn btn-primary rounded-pill mt-4">Submit Answer</button>
-                                    <a href="/generate-question" ><button class="btn btn-outline rounded-pill mt-4">Generate Another Question</button></a>
-                                </p>
-                            </form>
+                                <textarea rows="6" name="answer" class="form-control" placeholder="Enter your answer here" cols="50"></textarea>  
+                                <button type="submit" class="btn btn-primary rounded-pill mt-4">Submit Answer</button>
+                              </form>
+                            <p>
+                              <a href="/generate-question" ><button class="btn btn-outline rounded-pill mt-4">Generate Another Question</button></a>
+                            </p>
                         </div>
                     </td>
             

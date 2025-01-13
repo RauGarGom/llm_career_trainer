@@ -59,21 +59,12 @@
         <div class="container h-100">
             <p class="text-lg mt-5">{{ question }}</p>
             <form action="/evaluate-answer" method="post">
-                <textarea rows="6" name="answer" class="form-control" placeholder="Enter your answer here"  cols="50"></textarea>
-            <p>
-                <td>
-                    <button type="submit" class="btn btn-primary rounded-pill mt-4">Submit Answer</button>
-                </td>
-                <td>
-                    <button onclick="refreshPage()" class="btn btn-outline rounded-pill mt-4">Generate Another Question</button>
-                    <script>
-                        function refreshPage() {
-                            location.reload(); // Reloads the page
-                        }
-                    </script>
-                </td>
-            </p>
-            </form>
+              <textarea rows="6" name="answer" class="form-control" placeholder="Enter your answer here" cols="50"></textarea>
+              <button type="submit" class="btn btn-primary rounded-pill mt-4">Submit Answer</button>  
+          </form>
+          <p>
+            <a href="/generate-question" ><button class="btn btn-outline rounded-pill mt-4">Generate Another Question</button></a>
+          </p>
         </div>
     </div>
 </body>
