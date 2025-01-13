@@ -14,10 +14,9 @@ DSTrainer is a web-based application designed to simulate Data Science job inter
 
 
 ## 🛠️ Technology Stack
-- **Frontend**: HTML, CSS (Bootstrap), and JavaScript.
-- **Backend**: Python with Flask (or Django, if specified).
-- **AI Integration**: OpenAI or custom-trained LLM for question generation and evaluation.
-- **Deployment**: Streamlit Cloud, Heroku, or other hosting services.
+- **Frontend**: HTML, CSS (Bootstrap).
+- **Backend**: Python with FastAPI.
+- **AI Integration**: LangChain with Mistral AI.
 
 ## 🚀 Getting Started
 **Prerequisites**
