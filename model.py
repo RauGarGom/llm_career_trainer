@@ -48,7 +48,7 @@ def evaluate_answer_v2(answer,current_question):
     ### Makes a judgamental thought of the answer
     prompt = ChatPromptTemplate.from_template(
         '''
-        You are an Data Science techincal interviewer. Make a reasoned evaluation in 100 words or less of the interviewee, based on the answer {answer} from the question {question}.
+        You are a Data Science techincal interviewer. Make a reasoned evaluation in 100 words or less of the interviewee, based on the answer {answer} from the question {question}.
         Only evaluate the points explicitly mentioned in the question and only evaluate the answer {answer} from the question {question}, disregarding past interactions.
         For example, do not evaluate the lack of an example in the answer if the question did not ask for it. Also, don't ever grade the question.
         '''
@@ -71,9 +71,10 @@ def evaluate_answer_v2(answer,current_question):
     ### Takes the thought and continues the interview
     analysis_prompt = ChatPromptTemplate.from_template(
         '''
-        Make a following question based on the grade {grade}. If the grade is 5/10 or higher, make the question harder, while
-        if the grade lower than, make another technical question related to Data Science. that must not be related to the question {question}, but must always be related to Data Science.
-        Just give the question and be concise. Don't show the grade or the reasoning and just give the question, this is very important.
+        Make a following question based on the grade {grade}. If the grade is 5/10 or higher, make the question harder while being related to the
+        quesion {question}, while if the grade is lower than 5/10, make another technical question related to Data Science. that must not be
+        related to the question {question}, but must always be related to Data Science. Just give the question and be concise. Don't show 
+        the grade or the reasoning and just give the question, this is very important.
         ''')
     composed_chain = analysis_prompt | model | StrOutputParser()
     follow_up = composed_chain.invoke({"reasoning": answer, "grade": grade, "question": current_question})
@@ -108,9 +109,9 @@ def question_explanation(current_question):
     print(response.content)
 
 def db_connect():
-    host = "localhost" ### Change to llm-db.c9egi4wa8bqm.eu-west-1.rds.amazonaws.com for production.
+    host = "localhost" ### Change to llm-db.c9egi4wa8bqm.eu-west-1.rds.amazonaws.com for production, localhost for local
     username = "postgres"
-    password = os.getenv("LOCAL_POSTGRE_PASS") ### Change to POSTGRE_PASS for production.
+    password = os.getenv("LOCAL_POSTGRE_PASS") ### Change to POSTGRE_PASS for production, LOCAL_POSTGRE_PASS for local.
     port = 5432
     conn = psycopg2.connect(
         host=host,
