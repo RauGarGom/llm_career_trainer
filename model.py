@@ -1,44 +1,94 @@
 from langchain_groq import ChatGroq
-from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 import pandas as pd
 import os
-from dotenv import load_dotenv, find_dotenv
+from dotenv import load_dotenv
 import psycopg2
 from psycopg2.extras import DictCursor
+from langchain.document_loaders import DirectoryLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
+
 load_dotenv(override=True)
 
-### Environment variables for API keys
+### Environment and startup variables for API keys
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 mistral_api_key = os.getenv("MISTRAL_API_KEY")
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
 groq_api_key = os.getenv("GROQ_API_KEY")
-
+CHROMA_PATH = "data/text_db/chroma"
+DATA_PATH = "data/text_db/raw"
 
 
 ### Loading of the model
 model = ChatGroq(model="llama3-8b-8192")
 
-# async def make_request_with_retry(messages, max_retries=5, delay=60):
-#     for attempt in range(max_retries):
-#         try:
-#             response = await model.generate(messages)
-#             return response
-#         except Exception as e:
-#             if "rate limit" in str(e).lower() and attempt < max_retries - 1:
-#                 print(f"Rate limit exceeded. Retrying after {delay} seconds...")
-#                 await asyncio.sleep(delay)
-#             else:
-#                 raise
-#     raise Exception("Max retries exceeded")
+#####################
+#Startup functions
+#####################
 
+def load_split_documents():
+    text_loader_kwargs={'autodetect_encoding': True}
+    loader = DirectoryLoader(DATA_PATH, glob="*.pdf", loader_kwargs=text_loader_kwargs)
+    chunks = loader.load_and_split(RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=500, add_start_index=True)) ### We do the splitting in the same def as the loading.
+    return chunks
+
+def chroma_read():
+    print("Setting up embeddings...")
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
+    if os.path.exists(CHROMA_PATH+'/chroma.sqlite3') == True:
+        print("Local Chroma DB found. Reading Chroma database...")
+        chroma_db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embeddings)
+        print("Loaded Chroma DB from disk.")
+    else:
+        print(f"Local Chroma DB not found. Reading files from {DATA_PATH}...")
+        chunks = load_split_documents()
+        print("Creating Chroma database...")
+        chroma_db = Chroma.from_documents(chunks, embeddings, persist_directory=CHROMA_PATH)
+        print(f"Saved {len(chunks)} to {CHROMA_PATH}")
+    return chroma_db
+
+#####################
+#DB functions
+#####################
+
+def db_connect():
+    host = "localhost" ### Change to llm-db.c9egi4wa8bqm.eu-west-1.rds.amazonaws.com for production, localhost for local
+    username = "postgres"
+    password = os.getenv("LOCAL_POSTGRE_PASS") ### Change to POSTGRE_PASS for production, LOCAL_POSTGRE_PASS for local.
+    port = 5432
+    conn = psycopg2.connect(
+        host=host,
+        user=username,
+        password=password,
+        cursor_factory=DictCursor 
+    )
+    cursor = conn.cursor()
+    return conn, cursor
+
+def db_insert_values(action,llm_user,content):
+    conn, cursor = db_connect()
+    cursor.execute('''
+    INSERT INTO regist (action,llm_user,content)
+    VALUES (%s, %s, %s)
+    ''',
+    (action,llm_user,content)
+    )
+    conn.commit()
+    conn.close()
+
+#####################
+#LLM-based functions
+#####################
 
 def generate_question():
     df_questions = pd.read_csv('./data/questions.csv')
     question = df_questions.sample(1,ignore_index=True).values[0][0]
     db_insert_values('generate_question','system',question)
     return question
+
 
 
 def evaluate_answer_v2(answer,current_question):
@@ -81,6 +131,8 @@ def evaluate_answer_v2(answer,current_question):
     db_insert_values('follow_up question','system',follow_up)
     return thought, follow_up, grade, answer
 
+
+
 def question_explanation(current_question):
     prompt = ChatPromptTemplate.from_template(
         '''
@@ -92,43 +144,3 @@ def question_explanation(current_question):
     db_insert_values('answer_explanation','system',explanation)
     return explanation
 
-# def interview_training_local():
-    system_template = "You are an interviewer for a Data Science position. Evaluate the answer of {answer} and make a follow-up question, but don't explain it. Be concise."
-    prompt_template = ChatPromptTemplate.from_messages(
-        [("system", system_template), ("user", "{answer}")]
-    )
-    message = [
-    SystemMessage("You are an interviewer for a Data Science position. Ask one random technical question and evaluate the answers of the user. Change to another data science question when they ask to.")
-    # HumanMessage("What is the question?"),
-    ]
-    response = model.invoke(message)
-    print(response.content)
-    prompt = prompt_template.invoke({"answer": input('answer here')})
-
-    response = model.invoke(prompt)
-    print(response.content)
-
-def db_connect():
-    host = "localhost" ### Change to llm-db.c9egi4wa8bqm.eu-west-1.rds.amazonaws.com for production, localhost for local
-    username = "postgres"
-    password = os.getenv("LOCAL_POSTGRE_PASS") ### Change to POSTGRE_PASS for production, LOCAL_POSTGRE_PASS for local.
-    port = 5432
-    conn = psycopg2.connect(
-        host=host,
-        user=username,
-        password=password,
-        cursor_factory=DictCursor 
-    )
-    cursor = conn.cursor()
-    return conn, cursor
-
-def db_insert_values(action,llm_user,content):
-    conn, cursor = db_connect()
-    cursor.execute('''
-    INSERT INTO regist (action,llm_user,content)
-    VALUES (%s, %s, %s)
-    ''',
-    (action,llm_user,content)
-    )
-    conn.commit()
-    conn.close()

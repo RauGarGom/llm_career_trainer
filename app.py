@@ -13,8 +13,10 @@ app.mount("/assets", StaticFiles(directory="./templates/assets"), name="assets")
 # Initialize Jinja2 templates
 templates = Jinja2Templates(directory="./templates/html")
 
-# Global variable so evaluate gets the same question as generate
+# Startup variables
 current_question = None
+chroma_db = md.chroma_read()
+
 
 @app.get('/', response_class=HTMLResponse)
 async def home(request: Request):
