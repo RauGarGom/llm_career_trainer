@@ -6,19 +6,22 @@ import os
 from dotenv import load_dotenv
 import psycopg2
 from psycopg2.extras import DictCursor
-from langchain.document_loaders import DirectoryLoader
+from langchain_community.document_loaders import DirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_pinecone import PineconeVectorStore
 from langchain_chroma import Chroma
+from pinecone import Pinecone
+
 
 load_dotenv(override=True)
 
 ### Environment and startup variables for API keys
+
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 mistral_api_key = os.getenv("MISTRAL_API_KEY")
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
 groq_api_key = os.getenv("GROQ_API_KEY")
-CHROMA_PATH = "data/text_db/chroma"
+CHROMA_PATH = "./data/text_db/chroma_vertex"
 DATA_PATH = "data/text_db/raw"
 
 
@@ -30,25 +33,21 @@ model = ChatGroq(model="llama3-8b-8192")
 #####################
 
 def load_split_documents():
-    text_loader_kwargs={'autodetect_encoding': True}
-    loader = DirectoryLoader(DATA_PATH, glob="*.pdf", loader_kwargs=text_loader_kwargs)
-    chunks = loader.load_and_split(RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=500, add_start_index=True)) ### We do the splitting in the same def as the loading.
+    loader = DirectoryLoader(DATA_PATH, glob="*.pdf")
+    chunks = loader.load_and_split(RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=20)) ### We do the splitting in the same def as the loading.
     return chunks
 
-def chroma_read():
-    print("Setting up embeddings...")
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
+def chroma_read(chunks, embeddings):
     if os.path.exists(CHROMA_PATH+'/chroma.sqlite3') == True:
         print("Local Chroma DB found. Reading Chroma database...")
         chroma_db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embeddings)
         print("Loaded Chroma DB from disk.")
     else:
-        print(f"Local Chroma DB not found. Reading files from {DATA_PATH}...")
-        chunks = load_split_documents()
-        print("Creating Chroma database...")
+        print("Local Chroma DB not found. Creating Chroma database...")
         chroma_db = Chroma.from_documents(chunks, embeddings, persist_directory=CHROMA_PATH)
         print(f"Saved {len(chunks)} to {CHROMA_PATH}")
     return chroma_db
+
 
 #####################
 #DB functions
@@ -133,14 +132,27 @@ def evaluate_answer_v2(answer,current_question):
 
 
 
-def question_explanation(current_question):
-    prompt = ChatPromptTemplate.from_template(
-        '''
-        You are an Data Science teacher. Give a detailed explanation of the question {question}. Focus on what would be worth metioning in a job interview. Don't use more than 500 words.
-        '''
-        )
-    chain = prompt | model | StrOutputParser()
-    explanation = chain.invoke({"question":current_question})
-    db_insert_values('answer_explanation','system',explanation)
-    return explanation
+def question_explanation(embeddings, current_question):
+    ### Connection to Pinecone Vector Store
+    print("Loading documents...")
+    pinecone_api_key = os.getenv("PINECONE_API_KEY")
+    pc = Pinecone(api_key=pinecone_api_key)
+    index_name = "quickstart"
+    index = pc.Index(index_name)
+    vector_store = PineconeVectorStore(index=index,embedding=embeddings)
+    print("Searching for similar questions...")
+    results = vector_store.similarity_search(current_question, k=3)
+    print("Creating prompt and invoking model...")
+    prompt_template = ChatPromptTemplate.from_template("""
+    Answer the question based only on the following context:
+
+    {context}
+
+    ---
+
+    Answer the question based on the above context: {question}
+    """)
+    prompt = prompt_template.format(context=results, question=current_question)
+    response = model.invoke(prompt)
+    return response.content, results
 

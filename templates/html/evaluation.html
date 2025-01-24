@@ -26,8 +26,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light navbar-float">
         <div class="container">
-          <a href="/" class="navbar-brand">DS<span class="text-primary">Trainer</span></a>
-  
+          <a href="/" class="navbar-brand">DS<span class="text-primary">Trainer </span><span class="text-xs">2.2_local</span></a>
           <button class="navbar-toggler" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
@@ -65,8 +64,13 @@
                             <form action="/evaluate-answer" method="post">
                                 <textarea rows="6" name="answer" class="form-control" placeholder="Enter your answer here" cols="50"></textarea>  
                                 <button type="submit" class="btn btn-primary rounded-pill mt-4">Submit Answer</button>
-                              </form>
-                            <p>
+                            </form>
+                            <form action="/question-explanation" method="post">
+                              <p>
+                                <button class="btn btn-outline rounded-pill mt-4">Explain this question</button>
+                              </p>
+                            </form>
+                              <p>
                               <a href="/generate-question" ><button class="btn btn-outline rounded-pill mt-4">Generate Another Question</button></a>
                             </p>
                         </div>

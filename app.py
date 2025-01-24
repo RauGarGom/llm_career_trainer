@@ -2,7 +2,10 @@ from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from langchain_cohere import CohereEmbeddings
+from dotenv import load_dotenv
 import uvicorn
+import os
 import model as md
 
 app = FastAPI()
@@ -14,10 +17,14 @@ app.mount("/assets", StaticFiles(directory="./templates/assets"), name="assets")
 templates = Jinja2Templates(directory="./templates/html")
 
 # Startup variables
+load_dotenv(override=True)
+cohere_api_key = os.getenv("COHERE_API_KEY")
 current_question = None
-chroma_db = md.chroma_read()
+print("Setting up embeddings model...")
+embeddings = CohereEmbeddings(model="embed-english-light-v3.0")
 
 
+print("Setting up endpoints...")
 @app.get('/', response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -36,12 +43,14 @@ async def evaluate_answer(request: Request, answer: str = Form(...)):
     return templates.TemplateResponse("evaluation.html",
                                        {"request": request, "thought": thought, "follow_up": follow_up, "grade":grade, "prev_answer": prev_answer})
 
-@app.get('/question-explanation', response_class=HTMLResponse)
-async def explain_question(request: Request):
+@app.post('/question-explanation', response_class=HTMLResponse)
+async def explain_question(request: Request): ### TODO: change when in prod
     global current_question
-    explanation = md.question_explanation(current_question)
-    return templates.TemplateResponse("evaluation.html",
-                                       {"request": request, "explanation": explanation})
+    explanation, res = md.question_explanation(embeddings, current_question) ### Change when in prod
+    # return templates.TemplateResponse("evaluation.html",
+    #                                    {"request": request, "explanation": explanation})
+    return templates.TemplateResponse("explanation.html",
+                                       {"request": request, "question": current_question, "explanation": explanation})
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
