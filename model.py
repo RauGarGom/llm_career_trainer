@@ -9,7 +9,7 @@ from psycopg2.extras import DictCursor
 from langchain_community.document_loaders import DirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_pinecone import PineconeVectorStore
-from langchain_chroma import Chroma
+# from langchain_chroma import Chroma ### TODO: Not needed anymore
 from pinecone import Pinecone
 
 
@@ -21,7 +21,7 @@ os.environ["LANGCHAIN_TRACING_V2"] = "true"
 mistral_api_key = os.getenv("MISTRAL_API_KEY")
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
 groq_api_key = os.getenv("GROQ_API_KEY")
-CHROMA_PATH = "./data/text_db/chroma_vertex"
+# CHROMA_PATH = "./data/text_db/chroma_vertex" ### TODO: Not needed anymore
 DATA_PATH = "data/text_db/raw"
 
 
@@ -37,16 +37,17 @@ def load_split_documents():
     chunks = loader.load_and_split(RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=20)) ### We do the splitting in the same def as the loading.
     return chunks
 
-def chroma_read(chunks, embeddings):
-    if os.path.exists(CHROMA_PATH+'/chroma.sqlite3') == True:
-        print("Local Chroma DB found. Reading Chroma database...")
-        chroma_db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embeddings)
-        print("Loaded Chroma DB from disk.")
-    else:
-        print("Local Chroma DB not found. Creating Chroma database...")
-        chroma_db = Chroma.from_documents(chunks, embeddings, persist_directory=CHROMA_PATH)
-        print(f"Saved {len(chunks)} to {CHROMA_PATH}")
-    return chroma_db
+### TODO: Not needed anymore
+# def chroma_read(chunks, embeddings):
+#     if os.path.exists(CHROMA_PATH+'/chroma.sqlite3') == True:
+#         print("Local Chroma DB found. Reading Chroma database...")
+#         chroma_db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embeddings)
+#         print("Loaded Chroma DB from disk.")
+#     else:
+#         print("Local Chroma DB not found. Creating Chroma database...")
+#         chroma_db = Chroma.from_documents(chunks, embeddings, persist_directory=CHROMA_PATH)
+#         print(f"Saved {len(chunks)} to {CHROMA_PATH}")
+#     return chroma_db
 
 
 #####################
@@ -54,18 +55,25 @@ def chroma_read(chunks, embeddings):
 #####################
 
 def db_connect():
-    host = "localhost" ### Change to llm-db.c9egi4wa8bqm.eu-west-1.rds.amazonaws.com for production, localhost for local
-    username = "postgres"
-    password = os.getenv("LOCAL_POSTGRE_PASS") ### Change to POSTGRE_PASS for production, LOCAL_POSTGRE_PASS for local.
-    port = 5432
-    conn = psycopg2.connect(
-        host=host,
-        user=username,
-        password=password,
-        cursor_factory=DictCursor 
-    )
-    cursor = conn.cursor()
-    return conn, cursor
+    host = os.getenv("DB_HOST", "localhost")  ### Change to llm-db.c9egi4wa8bqm.eu-west-1.rds.amazonaws.com for production, localhost for local
+    username = os.getenv("DB_USER", "postgres")
+    password = os.getenv("DB_PASSWORD", "") ### Change to POSTGRE_PASS for production, LOCAL_POSTGRE_PASS for local.
+    port = os.getenv("DB_PORT", 5432)
+    database = os.getenv("DB_NAME", "postgres")
+    try:
+        conn = psycopg2.connect(
+            host=host,
+            port=port,
+            dbname=database,
+            user=username,
+            password=password,
+            cursor_factory=DictCursor
+        )
+        cursor = conn.cursor()
+        return conn, cursor
+    except psycopg2.Error as e:
+        print(f"Error connecting to the database: {e}")
+        return None, None
 
 def db_insert_values(action,llm_user,content):
     conn, cursor = db_connect()

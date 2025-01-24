@@ -60,19 +60,16 @@
                         <div id="follow_up">
                             <h3 class="title-section">Follow-up:</h3>
                             <p class="text-lg">{{ follow_up }}</p>
-                            <!-- <p class="text-lg mt-5">{{ question }}</p> -->
-                            <form action="/evaluate-answer" method="post">
-                                <textarea rows="6" name="answer" class="form-control" placeholder="Enter your answer here" cols="50"></textarea>  
-                                <button type="submit" class="btn btn-primary rounded-pill mt-4">Submit Answer</button>
-                            </form>
-                            <form action="/question-explanation" method="post">
-                              <p>
-                                <button class="btn btn-outline rounded-pill mt-4">Explain this question</button>
-                              </p>
-                            </form>
-                              <p>
-                              <a href="/generate-question" ><button class="btn btn-outline rounded-pill mt-4">Generate Another Question</button></a>
-                            </p>
+                              <form action="/evaluate-answer" method="post">
+                                <textarea rows="6" name="answer" class="form-control" placeholder="Enter your answer here" cols="50"></textarea>
+                                <div class="button-group d-flex justify-content-start mt-4">
+                                  <button type="submit" class="btn btn-primary rounded-pill mt-4">Submit Answer</button>
+                                  <form action="/question-explanation" method="post" class="ml-1">
+                                    <button class="btn btn-outline rounded-pill mt-4">Explain this question</button>
+                                  </form>
+                                  <a href="/generate-question" class="ml-1"><button class="btn btn-outline rounded-pill mt-4">Generate Another Question</button></a>
+                                </div>
+                              </form>
                         </div>
                     </td>
             
