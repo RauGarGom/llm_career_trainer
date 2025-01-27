@@ -1,5 +1,6 @@
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import StrOutputParser
 import pandas as pd
 import os
@@ -26,7 +27,7 @@ DATA_PATH = "data/text_db/raw"
 
 
 ### Loading of the model
-model = ChatGroq(model="llama3-8b-8192")
+model = ChatGroq(model="llama-3.1-8b-instant", temperature=0.2)
 
 #####################
 #Startup functions
@@ -103,24 +104,33 @@ def evaluate_answer_v2(answer,current_question):
     db_insert_values('answer_question','user',answer)
 
     ### Makes a judgamental thought of the answer
-    prompt = ChatPromptTemplate.from_template(
-        '''
+    prompt = ChatPromptTemplate.from_messages([
+        SystemMessage(content='''
         You are a Data Science techincal interviewer. Make a reasoned evaluation in 100 words or less of the interviewee, based on the answer {answer} from the question {question}.
         Only evaluate the points explicitly mentioned in the question and only evaluate the answer {answer} from the question {question}, disregarding past interactions.
-        For example, do not evaluate the lack of an example in the answer if the question did not ask for it. Also, don't ever grade the question.
+        For example, do not evaluate the lack of an example in the answer if the question did not ask for it.
+                      
+        If the answer is irrelevant, nonsensical, makes you doubt about the question or does not address the question, explicitly state that the answer fails to meet the question's requirements.
+
+        INSTRUCTIONS FOR THE EVALUATION:
+        **Do not ever grade the question.**
+        **Evaluate what the answer explicitly says. If, for example, the answer is "This is an elaborate answer", that answer is probably not responding the question.**
+        **If the answer is irrelevant or nonsensical, say so directly.**
         '''
-        )
+        ),
+        HumanMessage(content=answer)
+        ])
     chain = prompt | model | StrOutputParser()
     thought = chain.invoke({"answer": answer,"question":current_question})
     db_insert_values('evaluate_answer','system',thought)
 
     ### Gives a grade based on the thought
-    grade_prompt = ChatPromptTemplate.from_template(
-        '''
-        Grade the answer for the interviewee, based on the following reasoning given by the interviewer: {reasoning}. Examples: 1/10, 4/10, 10/10. Only give the grade,
+    grade_prompt = ChatPromptTemplate.from_messages([
+        ("system",'''Give a numerical score the answer for the interviewee from 1 to 10, based on the following reasoning given by the human: {reasoning}. Examples: "1", "4", "10". Only provide a number,
         don't explain it.
-        '''
-        )
+        '''),
+        ("human",thought)
+    ])
     grade_chain = grade_prompt | model | StrOutputParser()
     grade = grade_chain.invoke({"reasoning":thought,"answer": answer, "question": current_question})
     db_insert_values('grade','system',grade)
@@ -128,8 +138,8 @@ def evaluate_answer_v2(answer,current_question):
     ### Takes the thought and continues the interview
     analysis_prompt = ChatPromptTemplate.from_template(
         '''
-        Make a following question based on the grade {grade}. If the grade is 5/10 or higher, make the question harder while being related to the
-        quesion {question}, while if the grade is lower than 5/10, make another technical question related to Data Science. that must not be
+        Make a following question based on the grade {grade}. If the grade is 5 or higher, make the question harder while being related to the
+        quesion {question}, while if the grade is lower than 5, make another technical question related to Data Science. that must not be
         related to the question {question}, but must always be related to Data Science. Just give the question and be concise. Don't show 
         the grade or the reasoning and just give the question, this is very important.
         ''')
@@ -158,7 +168,8 @@ def question_explanation(embeddings, current_question):
 
     ---
 
-    Answer the question based on the above context: {question}
+    Answer the question based on the above context: {question}.
+    Only if there is no valid context given, answer the question as if context was not needed.
     """)
     prompt = prompt_template.format(context=results, question=current_question)
     response = model.invoke(prompt)
