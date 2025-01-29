@@ -38,18 +38,6 @@ def load_split_documents():
     chunks = loader.load_and_split(RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=20)) ### We do the splitting in the same def as the loading.
     return chunks
 
-### TODO: Not needed anymore
-# def chroma_read(chunks, embeddings):
-#     if os.path.exists(CHROMA_PATH+'/chroma.sqlite3') == True:
-#         print("Local Chroma DB found. Reading Chroma database...")
-#         chroma_db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embeddings)
-#         print("Loaded Chroma DB from disk.")
-#     else:
-#         print("Local Chroma DB not found. Creating Chroma database...")
-#         chroma_db = Chroma.from_documents(chunks, embeddings, persist_directory=CHROMA_PATH)
-#         print(f"Saved {len(chunks)} to {CHROMA_PATH}")
-#     return chroma_db
-
 
 #####################
 #DB functions
@@ -173,5 +161,6 @@ def question_explanation(embeddings, current_question):
     """)
     prompt = prompt_template.format(context=results, question=current_question)
     response = model.invoke(prompt)
+    ### TODO: insert response into SQL
     return response.content, results
 

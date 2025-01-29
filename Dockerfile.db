@@ -1,0 +1,2 @@
+FROM postgres:latest
+COPY /data/db_backup/250128-db_backup.sql /docker-entrypoint-initdb.d/
