@@ -1,2 +1,5 @@
 .ipynb
 .env
+**/__pycache__/
+**/secure
+*.yaml
