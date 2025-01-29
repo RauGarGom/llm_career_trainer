@@ -28,8 +28,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light navbar-float">
         <div class="container">
-          <a href="/" class="navbar-brand">DS<span class="text-primary">Trainer</span></a>
-  
+          <a href="/" class="navbar-brand">DS<span class="text-primary">Trainer </span><span class="text-xs">2.2</span></a>
           <button class="navbar-toggler" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
@@ -56,16 +55,21 @@
         </div>
       </nav>
     <div class="page-section">
-        <div class="container h-100">
-            <p class="text-lg mt-5">{{ question }}</p>
-            <form action="/evaluate-answer" method="post">
-              <textarea rows="6" name="answer" class="form-control" placeholder="Enter your answer here" cols="50"></textarea>
-              <button type="submit" class="btn btn-primary rounded-pill mt-4">Submit Answer</button>  
+      <div class="container h-100">
+        <p class="text-lg mt-5">{{ question }}</p>
+        <form action="/evaluate-answer" method="post">
+          <textarea rows="6" name="answer" class="form-control mb-4" placeholder="Enter your answer here" cols="50"></textarea>
+          <div class="d-flex justify-content-start align-items-center">
+            <button type="submit" class="btn btn-primary rounded-pill mr-2">Submit Answer</button>
           </form>
-          <p>
-            <a href="/generate-question" ><button class="btn btn-outline rounded-pill mt-4">Generate Another Question</button></a>
-          </p>
-        </div>
+            <form action="/question-explanation" method="post" class="ml-1">
+              <button class="btn btn-outline rounded-pill mr-2">Explain this question</button>
+            <a href="/generate-question" class="ml-1">
+              <button type="button" class="btn btn-outline rounded-pill">Generate Another Question</button>
+            </a>
+          </div>
+        </form>
+      </div>
     </div>
 </body>
 </html>
