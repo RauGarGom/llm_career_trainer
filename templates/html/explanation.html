@@ -1,30 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-    <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        
-          <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        
-          <meta name="copyright" content="MACode ID, https://macodeid.com">
-        
-          <title>DSTrainer by Raúl García</title>
-        
-          <link rel="stylesheet" href="../assets/vendor/animate/animate.css">
-        
-          <link rel="stylesheet" href="../assets/css/bootstrap.css">
-        
-          <link rel="stylesheet" href="../assets/css/maicons.css">
-        
-          <link rel="stylesheet" href="../assets/vendor/owl-carousel/css/owl.carousel.css">
-        
-          <link rel="stylesheet" href="../assets/css/theme.css">
-        
-          <link rel="icon" href="../assets/img/favicon-32x32.png" type="image/x-icon">
-        
-        </head>
-        
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="copyright" content="MACode ID, https://macodeid.com">
+        <title>DSTrainer by Raúl García</title>
+        <link rel="stylesheet" href="../assets/vendor/animate/animate.css">
+        <link rel="stylesheet" href="../assets/css/bootstrap.css">
+        <link rel="stylesheet" href="../assets/css/maicons.css">
+        <link rel="stylesheet" href="../assets/vendor/owl-carousel/css/owl.carousel.css">
+        <link rel="stylesheet" href="../assets/css/theme.css">
+        <link rel="icon" href="../assets/img/favicon-32x32.png" type="image/x-icon">
+    </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light navbar-float">
         <div class="container">
@@ -39,12 +27,7 @@
                 <a href="/" class="nav-link">Home</a>
               </li>
               <li class="nav-item active">
-                <a href="#" onclick="refreshPage();" class="nav-link">Train</a>
-                <script>
-                    function refreshPage() {
-                        location.reload(); // Reloads the page
-                    }
-                </script>
+                <a href="/generate-question" class="nav-link">Train</a>
               </li>
             </ul>
   
@@ -53,17 +36,35 @@
             </div>
           </div>
         </div>
-      </nav>
+    </nav>
+
     <div class="page-section">
-        <div class="container h-100">
-            <h3 class="title-section mt-3">The question:</h3>
-            <p class="text-lg">{{ question }}</p>
-            <h3 class="title-section mt-2">DSTrainer answers...</h3>
-            <p class="text-md">{{ explanation }}</p>
-          <p>
-            <a href="/generate-question" ><button class="btn btn-outline rounded-pill mt-4">Generate Another Question</button></a>
-          </p>
+        <div class="container pt-5">
+            <div class="row">
+                <div class="col-lg-8">
+                    <h3 class="title-section">Question:</h3>
+                    <p class="text-lg">{{ question }}</p>
+                    
+                    <h3 class="title-section mt-4">Explanation:</h3>
+                    <div id="explanation" class="text-lg" style="min-height: 200px;"></div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        const explanationDiv = document.getElementById('explanation');
+        const eventSource = new EventSource('/stream-explanation');
+
+        eventSource.onmessage = function(event) {
+            explanationDiv.innerHTML += event.data;
+            explanationDiv.scrollTop = explanationDiv.scrollHeight;
+        };
+
+        eventSource.onerror = function(error) {
+            console.error('EventSource failed:', error);
+            eventSource.close();
+        };
+    </script>
 </body>
 </html>

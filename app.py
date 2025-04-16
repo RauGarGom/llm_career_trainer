@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from langchain_cohere import CohereEmbeddings
@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import uvicorn
 import os
 import model as md
+import asyncio
 
 app = FastAPI()
 
@@ -19,10 +20,17 @@ templates = Jinja2Templates(directory="./templates/html")
 # Startup variables
 load_dotenv(override=True)
 cohere_api_key = os.getenv("COHERE_API_KEY")
+pinecone_api_key = os.getenv("PINECONE_API_KEY")
+
+if not cohere_api_key:
+    print("Warning: COHERE_API_KEY not found in environment variables")
+if not pinecone_api_key:
+    print("Warning: PINECONE_API_KEY not found in environment variables")
+
 current_question = None
 print("Setting up embeddings model...")
 embeddings = CohereEmbeddings(model="embed-english-light-v3.0")
-
+print("Embeddings model initialized successfully")
 
 print("Setting up endpoints...")
 @app.get('/', response_class=HTMLResponse)
@@ -44,13 +52,20 @@ async def evaluate_answer(request: Request, answer: str = Form(...)):
                                        {"request": request, "thought": thought, "follow_up": follow_up, "grade":grade, "prev_answer": prev_answer})
 
 @app.post('/question-explanation', response_class=HTMLResponse)
-async def explain_question(request: Request): ### TODO: change when in prod
+async def explain_question(request: Request):
     global current_question
-    explanation, res = md.question_explanation(embeddings, current_question) ### Change when in prod
-    # return templates.TemplateResponse("evaluation.html",
-    #                                    {"request": request, "explanation": explanation})
     return templates.TemplateResponse("explanation.html",
-                                       {"request": request, "question": current_question, "explanation": explanation})
+                                   {"request": request, "question": current_question})
+
+@app.get('/stream-explanation')
+async def stream_explanation():
+    global current_question
+    async def generate():
+        for chunk in md.question_explanation_streaming(embeddings,current_question):
+            yield f"data: {chunk}\n\n"
+            await asyncio.sleep(0.1)  # Small delay to prevent overwhelming the client
+    
+    return StreamingResponse(generate(), media_type="text/event-stream")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

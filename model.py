@@ -1,4 +1,5 @@
 from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import StrOutputParser
@@ -27,7 +28,8 @@ DATA_PATH = "data/text_db/raw"
 
 
 ### Loading of the model
-model = ChatGroq(model="llama-3.1-8b-instant", temperature=0.2)
+# model = ChatGroq(model="llama-3.1-8b-instant", temperature=0.2)
+model = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite", temperature=0.2)
 
 #####################
 #Startup functions
@@ -163,4 +165,24 @@ def question_explanation(embeddings, current_question):
     response = model.invoke(prompt)
     ### TODO: insert response into SQL
     return response.content, results
+
+
+def question_explanation_streaming(embeddings,current_question):
+    # pinecone_api_key = os.getenv("PINECONE_API_KEY")
+    # pc = Pinecone(api_key=pinecone_api_key)
+    # index_name = "quickstart"
+    # index = pc.Index(index_name)
+    # vector_store = PineconeVectorStore(index=index,embedding=embeddings)
+    # results = vector_store.similarity_search(current_question, k=3)
+    prompt_template = ChatPromptTemplate.from_template("""
+    You are a Data Science professor, that always explains thoroughly the questions. Answer the following question: {question}.
+    """)
+    prompt = prompt_template.format(question=current_question)
+    stream = model.stream(prompt)
+    for chunk in stream:
+        if hasattr(chunk, 'content'):
+            yield chunk.content
+        else:
+            yield str(chunk)
+
 
