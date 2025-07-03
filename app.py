@@ -8,6 +8,12 @@ import uvicorn
 import os
 import model as md
 import asyncio
+from pydantic import BaseModel, Field
+from typing import Any, Optional
+from langchain_core.messages import AnyMessage
+from chatbot import graph, OverallState
+
+
 
 app = FastAPI()
 
@@ -16,6 +22,10 @@ app.mount("/assets", StaticFiles(directory="./templates/assets"), name="assets")
 
 # Initialize Jinja2 templates
 templates = Jinja2Templates(directory="./templates/html")
+
+#Pydantic classes:
+
+
 
 # Startup variables
 load_dotenv(override=True)
@@ -66,6 +76,12 @@ async def stream_explanation():
             await asyncio.sleep(0.1)  # Small delay to prevent overwhelming the client
     
     return StreamingResponse(generate(), media_type="text/event-stream")
+
+
+@app.post('/chatbot')
+async def chatbot(input:OverallState):
+    response = await graph.ainvoke(OverallState(messages=[],cv="",score=5, num_questions=0)) ### HumanMessage(content="Hello, glad to be here")
+    return response["messages"][-1].content
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
