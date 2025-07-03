@@ -104,15 +104,13 @@ def chatbot(state: OverallState):
     )
 
 def human_response(state: OverallState):
-    response = input("Enter your response: ")
-    all_msg = state.messages + [HumanMessage(content=response)]
-
-    print(f"Human: {response}")
-
+    # The 'input()' call was removed. User input is now expected in state.current_human_input
     response = state.current_human_input
+
     if response is None:
         # This case should ideally be handled by app.py or graph logic
-        # to ensure human_response is only called when there's input.
+        # to ensure human_response is only called when there's input,
+        # or the graph should not proceed to this node if input is missing.
         print("Error: human_response called without input.")
         # Adding a dummy HumanMessage to avoid breaking the chain,
         # but this signifies a flaw in the flow from app.py
