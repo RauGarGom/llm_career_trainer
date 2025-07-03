@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="copyright" content="MACode ID, https://macodeid.com">
+  <title>Chatbot CV Upload - DSTrainer</title>
+  <link rel="stylesheet" href="/assets/vendor/animate/animate.css">
+  <link rel="stylesheet" href="/assets/css/bootstrap.css">
+  <link rel="stylesheet" href="/assets/css/maicons.css">
+  <link rel="stylesheet" href="/assets/vendor/owl-carousel/css/owl.carousel.css">
+  <link rel="stylesheet" href="/assets/css/theme.css">
+  <link rel="icon" href="/assets/img/favicon-32x32.png" type="image/x-icon">
+</head>
+<body>
+
+  <!-- Back to top button -->
+  <div class="back-to-top"></div>
+
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-light navbar-float">
+      <div class="container">
+        <a href="/" class="navbar-brand">DS<span class="text-primary">Trainer</span> <span class="text-xs">Chatbot</span></a>
+        <button class="navbar-toggler" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="navbar-collapse collapse" id="navbarContent">
+          <ul class="navbar-nav ml-lg-4 pt-3 pt-lg-0">
+            <li class="nav-item">
+              <a href="/" class="nav-link">Home</a>
+            </li>
+            <li class="nav-item">
+              <a href="/generate-question" class="nav-link">Train (Classic)</a>
+            </li>
+            <li class="nav-item active">
+              <a href="/chatbot-cv" class="nav-link">Chatbot Interview</a>
+            </li>
+          </ul>
+          <div class="ml-auto">
+            <a href="https://github.com/RauGarGom/" target="_blank" rel="noopener noreferrer" class="btn btn-outline rounded-pill">GitHub</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="page-hero-section bg-image hero-mini" style="background-image: url(/assets/img/bg_image_1.png);">
+      <div class="hero-caption">
+        <div class="container fg-white h-100">
+          <div class="row justify-content-center align-items-center text-center h-100">
+            <div class="col-lg-6">
+              <h3 class="mb-4 fw-medium">Chatbot Interview: Upload CV</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-section">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-8">
+            <div class="card-page mt-5">
+              <h5 class="fg-primary">Upload your CV to start the interview</h5>
+              <p class="text-sm">Please upload your CV in PDF format.</p>
+
+              {% if error %}
+                <div class="alert alert-danger" role="alert">
+                  Error: {{ error }}
+                </div>
+              {% endif %}
+
+              <form action="/chatbot-start" method="post" enctype="multipart/form-data" class="mt-4">
+                <div class="form-group">
+                  <label for="cv_file">CV File (PDF only):</label>
+                  <input type="file" class="form-control-file" id="cv_file" name="cv_file" accept=".pdf" required>
+                </div>
+                <button type="submit" class="btn btn-primary rounded-pill mt-3">Start Interview</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="page-footer">
+    <!-- Footer content similar to index.html if desired -->
+  </footer>
+
+  <script src="/assets/js/jquery-3.5.1.min.js"></script>
+  <script src="/assets/js/bootstrap.bundle.min.js"></script>
+  <script src="/assets/vendor/wow/wow.min.js"></script>
+  <script src="/assets/js/theme.js"></script>
+
+</body>
+</html>

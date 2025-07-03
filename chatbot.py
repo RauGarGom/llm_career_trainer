@@ -4,7 +4,7 @@ load_dotenv(find_dotenv())
 os.environ["LANGCHAIN_PROJECT"] = "langchain-academy"
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 from langchain_google_genai import ChatGoogleGenerativeAI
-from pdfminer.high_level import extract_text
+# from pdfminer.high_level import extract_text # No longer needed here
 model = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
 from langchain_core.prompts import ChatPromptTemplate
 from IPython.display import Image, display
@@ -18,10 +18,11 @@ from langgraph.graph import StateGraph, START, END
 
 class OverallState(BaseModel):
     messages: list[AnyMessage] = Field(description="A list of Langchain messages from the past conversation")
-    cv: Optional[str] = Field(descrixption="A string containing professional and academic background of a candidate")
+    cv: Optional[str] = Field(description="A string containing professional and academic background of a candidate") # Corrected typo in description
     score: Optional[int] = Field(description="A number ranging from 0 to 10, depending on how good the las answer from the human was")
     num_questions: int = Field(description="Number of questions asked to the human")
     should_end: bool = Field(default=False, description="Whether the LLM thinks the interview should end")
+    current_human_input: Optional[str] = Field(default=None, description="The most recent input from the human user")
 
 
 chatbot_prompt = '''
@@ -60,10 +61,16 @@ YOU MUST ONLY Respond with "yes" or "no" only.
 '''
 
 def cv_reader(state:OverallState):
-    cv_path = './data/adaptive_agent/RGG-English.pdf'
-    print("Reading your CV...")
-    text_content = extract_text(cv_path)
-    return{"cv":text_content}
+    # CV text is now expected to be in state.cv, populated by app.py
+    # This node can be used for any initial processing if needed,
+    # or simply pass the state along.
+    # For now, it ensures the cv is part of the returned state.
+    print("CV Reader node: CV should be pre-loaded in state.")
+    if not state.cv:
+        print("Warning: CV text is missing in the state for cv_reader node.")
+        # Optionally, handle this case, e.g., by returning an error or a default CV
+        # For now, we'll proceed, but this indicates an issue in app.py's setup
+    return {"cv": state.cv, "messages": state.messages} # Ensure messages are carried forward
 
 def chatbot(state: OverallState):
     print("Preparing an answer")
@@ -102,7 +109,27 @@ def human_response(state: OverallState):
 
     print(f"Human: {response}")
 
-    return OverallState(messages=all_msg, cv=state.cv, score = state.score, num_questions=state.num_questions, should_end=state.should_end)
+    response = state.current_human_input
+    if response is None:
+        # This case should ideally be handled by app.py or graph logic
+        # to ensure human_response is only called when there's input.
+        print("Error: human_response called without input.")
+        # Adding a dummy HumanMessage to avoid breaking the chain,
+        # but this signifies a flaw in the flow from app.py
+        all_msg = state.messages + [HumanMessage(content="[No input provided]")]
+    else:
+        all_msg = state.messages + [HumanMessage(content=response)]
+        print(f"Human: {response}")
+
+    # Clear the input after processing
+    return OverallState(
+        messages=all_msg,
+        cv=state.cv,
+        score=state.score,
+        num_questions=state.num_questions,
+        should_end=state.should_end,
+        current_human_input=None # Clear current input
+    )
 
 def questions_condition(state: OverallState):
     print(f"DEBUG: questions: {state.num_questions}")
